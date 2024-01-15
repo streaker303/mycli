@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+
+const { program } = require('commander');
+const path = require('path');
+const exists = require('fs').existsSync;
+const ora = require('ora');
+const download = require('download-git-repo');
+const inquirer = require('inquirer');
+const chalk = require('chalk');
+const rimraf = require('rimraf')
+
+program.parse(process.argv);
+
+const spinner = ora();
+const projectName = program.args[0];
+
+if (exists(projectName)) {
+  inquirer.prompt([{
+    type: 'confirm',
+    message: '目录已存在是否覆盖？',
+    name: 'ok'
+  }]).then(answers => {
+    if (answers.ok) {
+      console.log(chalk.yellow('原有项目删除中......'))
+      rimraf(path.resolve(projectName), {},(err) => {
+        if (err) {
+          console.log(chalk.red(err.message.trim()));
+          return;
+        }
+        console.log(chalk.green('原有项目删除成功！'));
+        downloadTemplate()
+      })
+    }
+  }).catch(err => console.log(chalk.red(err.message.trim())));
+} else {
+  downloadTemplate()
+}
+
+function downloadTemplate() {
+  spinner.start('下载模板中......');
+  download('direct:git@github.com:streaker303/base-dev-platform.git', projectName, { clone: true }, (err) => {
+    if (err) {
+      spinner.fail('下载失败');
+      console.log(err);
+      return;
+    }
+    spinner.succeed('下载成功！');
+  });
+}

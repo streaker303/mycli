@@ -1,0 +1,10 @@
+#! /usr/bin/env node
+const program = require('commander');
+
+// 定义版本
+program
+  .version(require('../package.json').version, '-v, --version')
+  .usage('<command> [options]')
+  .command('init', '创建新项目')
+  .command('add', '创建新文件')
+  .parse(process.argv);
