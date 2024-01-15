@@ -3,6 +3,28 @@
 const program = require('commander');
 const fs = require('fs');
 const path = require('path');
+const inquirer = require('inquirer');
+const mustache = require('mustache');
 
 program.parse(process.argv);
 
+
+inquirer.prompt([
+  {
+    type: 'list',
+    name: 'componentType',
+    message: '你想要创建哪种类型的组件?',
+    choices: ['Form', 'Modal'],
+  },
+]).then(answers => {
+  // 根据用户的选择，读取相应的模板文件
+  const templatePath = path.join(__dirname, '../template' , `${answers.componentType.toLowerCase()}.tpl`);
+  const template = fs.readFileSync(templatePath, 'utf8');
+  
+  // 使用mustache渲染模板文件
+  const output = mustache.render(template, { componentName: answers.componentType, content: 'hello' });
+  
+  // 将渲染后的结果写入新的.js文件
+  const outputPath = path.join(__dirname, `${answers.componentType}.js`);
+  fs.writeFileSync(outputPath, output);
+});
