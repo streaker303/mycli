@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 const { program } = require('commander');
 const path = require('path');
 const exists = require('fs').existsSync;
@@ -8,11 +7,21 @@ const download = require('download-git-repo');
 const inquirer = require('inquirer');
 const chalk = require('chalk');
 const rimraf = require('rimraf')
+const figlet = require('figlet');
+const generator = require("../lib/generator");
 
 program.parse(process.argv);
 
 const spinner = ora();
 const projectName = program.args[0];
+
+figlet(projectName, (err, data) => {
+  if (err) {
+    console.log(chalk.red(err.message.trim));
+    return;
+  }
+  console.log(chalk.yellow(data));
+});
 
 if (exists(projectName)) {
   inquirer.prompt([{
@@ -28,22 +37,49 @@ if (exists(projectName)) {
           return;
         }
         console.log(chalk.green('原有项目删除成功！'));
-        downloadTemplate()
+        downloadTemplate().then(() => {
+          return inquirer.prompt([{
+            name: 'version',
+            message: '项目的版本号',
+            default: '1.0.0'
+          }, {
+            name: 'description',
+            message: '项目的简介',
+            default: `A project`
+          }]).then(answer => {
+            generator({version: answer.version, description: answer.description, projectName}, path.resolve(projectName), path.resolve(projectName))
+          })
+        }).catch(() => {})
       })
     }
   }).catch(err => console.log(chalk.red(err.message.trim())));
 } else {
-  downloadTemplate()
+  downloadTemplate().then(() => {
+    return inquirer.prompt([{
+      name: 'version',
+      message: '项目的版本号',
+      default: '1.0.0'
+    }, {
+      name: 'description',
+      message: '项目的简介',
+      default: `A project`
+    }]).then(answer => {
+      generator({version: answer.version, description: answer.description, projectName}, path.resolve(projectName), path.resolve(projectName))
+    })
+  }).catch(() => {})
 }
 
 function downloadTemplate() {
   spinner.start('下载模板中......');
-  download('direct:git@github.com:streaker303/base-dev-platform.git', projectName, { clone: true }, (err) => {
-    if (err) {
-      spinner.fail('下载失败');
-      console.log(err);
-      return;
-    }
-    spinner.succeed('下载成功！');
-  });
+  return new Promise((resolve, reject) => {
+    download('direct:git@gitee.com:streaker303/platform.git', projectName, {clone: true}, (err) => {
+      if (err) {
+        spinner.fail('下载失败');
+        reject(err);
+      } else {
+        spinner.succeed('下载成功！');
+        resolve();
+      }
+    });
+  })
 }
