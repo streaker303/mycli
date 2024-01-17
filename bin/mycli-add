@@ -12,19 +12,31 @@ program.parse(process.argv);
 inquirer.prompt([
   {
     type: 'list',
-    name: 'componentType',
+    name: 'type',
     message: '你想要创建哪种类型的组件?',
     choices: ['Form', 'Modal'],
   },
+  {
+    type: 'input',
+    name: 'name',
+    message: '请输入组件名称',
+    validate: function(input) {
+      // 验证输入是否以大写字母开头
+      if (/^[A-Z]/.test(input)) {
+        return true;
+      }
+      return '组件名称必须以大写字母开头';
+    },
+  },
 ]).then(answers => {
   // 根据用户的选择，读取相应的模板文件
-  const templatePath = path.join(__dirname, '../template' , `${answers.componentType.toLowerCase()}.tpl`);
+  const templatePath = path.join(__dirname, '../template' , `${answers.type.toLowerCase()}.tpl`);
   const template = fs.readFileSync(templatePath, 'utf8');
   
   // 使用mustache渲染模板文件
-  const output = mustache.render(template, { componentName: answers.componentType, content: 'hello' });
+  const output = mustache.render(template, { componentName: answers.type, name: answers.name, content: 'Hello' });
   
   // 将渲染后的结果写入新的.js文件
-  const outputPath = path.join(__dirname, `${answers.componentType}.js`);
+  const outputPath = path.join(process.cwd(), `${answers.name}.js`);
   fs.writeFileSync(outputPath, output);
 });

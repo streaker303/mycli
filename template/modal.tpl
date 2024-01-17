@@ -1,6 +1,6 @@
 import React from 'react';
 import {Modal} from 'tbfe-ui';
-const {{componentName}} = (
+const {{name}} = (
   {
     showModal,
     handleCheck,
@@ -19,4 +19,4 @@ const {{componentName}} = (
     </Modal>
   );
 };
-export default {{componentName}};
+export default {{name}};
